@@ -1,0 +1,174 @@
+# Generated with JReleaser 1.14.0 at 2024-09-27T13:55:49.163446-06:00
+project:
+  name: GCToolKit
+  version: 3.0.5
+  description: Java GC log parsing toolkit
+  longDescription: Java GC log parsing toolkit.
+  authors:
+    - Microsoft
+  license: MIT
+  links:
+    homepage: https://github.com/microsoft/gctoolkit
+  java:
+    groupId: com.microsoft.gctoolkit
+    artifactId: gctoolkit
+    version: 8
+  inceptionYear: 2020
+
+release:
+  github:
+    owner: dsgrieve
+    repoUrl: https://github.com/dsgrieve/gctoolkit
+    sign: false
+    skipTag: false
+    overwrite: true
+
+    # Changelog customization.
+    #
+    changelog:
+      enabled: true
+      sort: DESC
+      links: true
+      skipMergeCommits: true
+      formatted: ALWAYS
+      preset: 'conventional-commits'
+      format: '- {{commitShortHash}} {{commitTitle}} ({{commitAuthor}})'
+      categoryTitleFormat: '### {{categoryTitle}}'
+      contributorsTitleFormat: '### Contributors'
+      content: |
+        # Changelog
+
+        {{changelogChanges}}
+        {{changelogContributors}}
+
+      contributors:
+        # Enables the contributors block.
+        # Defaults to `true`.
+        #
+        enabled: true
+
+        # The template to use for each contributor.
+        # Defaults to `{{contributorName}}`.
+        #
+        format: '- {{contributorName}} ({{contributorUsernameAsLink}})'
+
+      #
+      hide:
+        # Hide uncategorized commits.
+        uncategorized: true
+
+        # Hide matching categories.
+        categories:
+          - 'merge'
+          - 'documentation'
+          - 'build'
+
+        # Hide matching contributor names.
+        contributors:
+          - '[bot]'
+          - 'GitHub'
+
+      # A list of labels to be included.
+      # Only changes matching this list will be included.
+      # Defaults to empty.
+      #
+      # includeLabels:
+      #   - 'issue'
+
+      # A list of labels to be excluded.
+      # Changes matching this list will be excluded.
+      # Defaults to empty.
+      #
+      excludeLabels:
+        - 'docs'
+
+      # Defines rules that apply labels to changes.
+      # Matchers are evaluated independently; the label will
+      # be set if at least one of the matchers meets the criteria.
+      #
+      labelers:
+          # The label to be applied.
+          #
+        - label: 'issue'
+
+          # Matches the text of the first commit line.
+          # Value may be plain text or regex.
+          # Use `regex:` as prefix to indicate a regex.
+          #
+          title: 'regex:fix:'
+
+          # Matches the full text of the commit.
+          # Value may be plain text or regex.
+          # Use `regex:` as prefix to indicate a regex.
+          #
+          body: 'Fixes #'
+
+          # Matches the name or email of a given contributor.
+          # Value may be plain text or regex.
+          # Use `regex:` as prefix to indicate a regex.
+          #
+          # contributor: 'GitHub'
+
+          # Priority when sorting.
+          # Defaults to `null`
+          #
+          order: 1
+
+      # Groups changes by category.
+      # Defaults are shown.
+      #
+      categories:
+          # Used for rendering
+        - title: '🚀 Features'
+          # Used for identifying the category
+          key: 'features'
+          labels:
+            - 'feature'
+            - 'enhancement'
+          order: 1
+        - title: '🐛 Bug Fixes'
+          key: 'fixes'
+          # You may override the format per category.
+          format: '- {{commitShortHash}} {{commitBody}}'
+          labels:
+            - 'bug'
+            - 'fix'
+          order: 2
+
+      # Defines rules for replacing the generated content.
+      # Each replacer is applied in order.
+      #
+      # replacers:
+      #   - search: '\[chore\]\s'
+      #     replace: ''
+      #   - search: '/CVE-(\d{4})-(\d+)/g'
+      #     replace: 'https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-$1-$2'
+
+      # Additional properties used when evaluating templates.
+      #
+      # extraProperties:
+      #   # Key will be capitalized and prefixed with `changelog`, i.e, `changelogFoo`.
+      #   foo: bar
+    # changelog:
+    #   formatted: ALWAYS
+    #   preset: conventional-commits
+    #   labelers:
+    #     - label: maven-release
+    #       title: 'maven-release-plugin'
+    #     - label: github-issue
+    #       title: '#'
+    #   categories:
+    #     - title: maven-release
+    #       labels: ['maven-release']
+    #     - title: '♻️  Changes'
+    #       labels: ['github-issue']
+      # contributors:
+      #   format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+      # hide:
+      #   contributors: ['GitHub']
+      #   categories: ['maven-release']
+  
+
+deploy:
+  maven:
+    active: NEVER

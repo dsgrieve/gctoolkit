@@ -9,7 +9,7 @@
 
     <name>GCToolKit</name>
     <description>GC log parsing utilities</description>
-    <url>https://github.com/microsoft/gctoolkit</url>
+    <url>https://github.com/dsgrieve/gctoolkit</url>
 
     <organization>
         <name>Microsoft Corporation</name>
@@ -25,34 +25,23 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:${repository.url}</connection>
-        <developerConnection>scm:git:${repository.url}</developerConnection>
+        <connection>scm:git:https://github.com/dsgrieve/gctoolkit</connection>
+        <developerConnection>scm:git:https://github.com/dsgrieve/gctoolkit</developerConnection>
         <url>${repository.url}</url>
       <tag>HEAD</tag>
   </scm>
 
     <developers>
         <developer>
-            <id>microsoft</id>
+            <id>dsgrieve</id>
             <name>Microsoft Corporation</name>
         </developer>
     </developers>
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/microsoft/gctoolkit/issues</url>
+        <url>https://github.com/dsgrieve/gctoolkit/issues</url>
     </issueManagement>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <properties>
         <revision>3.0.3-SNAPSHOT</revision>
@@ -91,7 +80,7 @@
         <!-- TODO Migrate to 7.3.0 -->
         <pmd.version>6.55.0</pmd.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.github.repository>microsoft/gctoolkit</project.github.repository>
+        <project.github.repository>dsgrieve/gctoolkit</project.github.repository>
         <repository.url>git@github.com:${project.github.repository}.git</repository.url>
         <spotbugs.version>4.8.6</spotbugs.version>
     </properties>
@@ -284,11 +273,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven.source-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire-plugin.version}</version>
                 </plugin>
@@ -341,24 +325,9 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${maven.jacoco-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>report</id>
-                            <phase>prepare-package</phase>
-                            <goals>
-                                <goal>report</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
@@ -370,32 +339,40 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>jar</phase>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.7.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                    <stagingProgressTimeoutMinutes>10</stagingProgressTimeoutMinutes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.hjug.refactorfirst.plugin</groupId>
-                <artifactId>refactor-first-maven-plugin</artifactId>
-                <version>0.5.0-M1</version>
-                <!-- optional -->
-                <configuration>
-                    <showDetails>true</showDetails>
-                </configuration>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -415,26 +392,6 @@
                         </plugin>
                     </plugins>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-changes-plugin</artifactId>
-                <!-- TODO This configuration is only for when we produce GitHub published reports -->
-                <configuration>
-                    <githubAPIScheme>https</githubAPIScheme>
-                    <githubAPIPort>443</githubAPIPort>
-                    <includeOpenIssues>false</includeOpenIssues>
-                    <onlyCurrentVersion>false</onlyCurrentVersion>
-                </configuration>
-                <reportSets>
-                    <reportSet>
-                        <reports>
-                            <report>changes-report</report>
-                            <!-- TODO -->
-                            <!-- <report>github-report</report> -->
-                        </reports>
-                    </reportSet>
-                </reportSets>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -473,6 +430,9 @@
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -492,142 +452,28 @@
                 </reportSets>
             </plugin>
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${maven.jacoco-plugin.version}</version>
-            </plugin>
-            <plugin>
                 <groupId>org.hjug.refactorfirst.plugin</groupId>
                 <artifactId>refactor-first-maven-plugin</artifactId>
+                <version>0.6.0</version>
+                <!-- optional -->
+                <configuration>
+                    <showDetails>true</showDetails>
+                </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <id>report</id>
+                            <reports>
+                                <report>report</report>
+                            </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
         </plugins>
     </reporting>
-
-    <profiles>
-        <profile>
-            <!-- Only active when you add -Prelease to the build-->
-            <id>release</id>
-            <activation>
-                <property>
-                    <name>release</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.4</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <phase>verify</phase>
-                                <configuration>
-                                    <gpgArguments>
-                                        <arg>--pinentry-mode</arg>
-                                        <arg>loopback</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>jreleaser</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jreleaser</groupId>
-                        <artifactId>jreleaser-maven-plugin</artifactId>
-                        <version>${jreleaser.plugin.version}</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>commons-io</groupId>
-                                <artifactId>commons-io</artifactId>
-                                <version>2.11.0</version>
-                            </dependency>
-                        </dependencies>
-                        <inherited>false</inherited>
-                        <configuration>
-                            <jreleaser>
-                                <release>
-                                    <github>
-                                        <tagName>gctoolkit-{{projectVersion}}</tagName>
-                                        <skipTag>true</skipTag>
-                                        <changelog>
-                                            <formatted>ALWAYS</formatted>
-                                            <preset>conventional-commits</preset>
-                                            <labelers>
-                                                <labeler>
-                                                    <label>maven-release</label>
-                                                    <title>[maven-release-plugin]</title>
-                                                </labeler>
-                                                <labeler>
-                                                    <label>github-issue</label>
-                                                    <title>#</title>
-                                                </labeler>
-                                            </labelers>
-                                            <categories>
-                                                <category>
-                                                    <title>maven-release</title>
-                                                    <labels>maven-release</labels>
-                                                </category>
-                                                <category>
-                                                    <title>♻️  Changes</title>
-                                                    <labels>github-issue</labels>
-                                                </category>
-                                            </categories>
-                                            <contributors>
-                                                <format>
-                                                    - {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}
-                                                </format>
-                                            </contributors>
-                                            <hide>
-                                                <contributors>
-                                                    GitHub
-                                                </contributors>
-                                                <categories>
-                                                    maven-release
-                                                </categories>
-                                            </hide>
-                                        </changelog>
-                                    </github>
-                                </release>
-                            </jreleaser>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

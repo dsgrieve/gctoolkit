@@ -1,0 +1,191 @@
+# Release GCToolkit to Maven Central
+# 
+# Updates the Git repo with the version to release.
+#   - Removes `-SNAPSHOT` from project:version in POM files.
+# Builds and tests the binaries.
+# Signs the artifacts and generates SHA checksums.
+# Publishes the artifacts to Maven Central.
+# Updates the Git repo with the next version to release.
+#   - Increments version and adds `-SNAPSHOT` back to project:version in POM files.
+
+trigger: none
+pr: none
+
+# parameters:
+#   - name: 'no_sync'
+#     displayName: 'Build no-sync version?'
+#     type: boolean
+#     default: false
+
+# The `resources` specify the location and version of the 1ES PT.
+resources:
+  repositories:
+  - repository: 1esPipelines
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+  - repository: gctoolkit
+    type: github
+    endpoint: 'Github-Java-Engineering'
+    name: microsoft/gctoolkit
+    ref: ${{ parameters.branch }}
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      name: JEG-ubuntu22.04-skrelease # TODO: Do we need to define a pool just for GCToolkit? Or should we change `skrelease` to be a more generic tools-builder-focused pool?
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: JEG-windows2022x64-sdl
+        os: windows
+      sourceRepositoriesToScan:
+        include:
+          - repository: gctoolkit
+        runInSingleJob: true
+      # credscan:
+      #   suppressionsFile: $(Build.SourcesDirectory)/gctoolkit/.devops/.config/credscan/gctoolkit-suppressions.json
+
+    stages:
+      - stage: Release GCToolkit
+        jobs:
+        - job: build_gctoolkit
+          workspace:
+            clean: all
+          displayName: Build with Maven
+          steps:
+            - checkout: self
+              clean: true
+
+            - bash: |
+                mkdir ~/.m2 \|| true
+                cp $(Build.SourcesDirectory)/.devops/feed-settings.xml ~/.m2/settings.xml
+              displayName: 'Copy feed-settings to .m2'
+
+            # Use modern Java to build
+            - task: JavaToolInstaller@0
+              inputs:
+                versionSpec: '11'
+                jdkArchitectureOption: 'x64'
+                jdkSourceOption: 'PreInstalled'
+              displayName: 'Set Java to v11'
+
+            # Ensure authentication is in place for our use of internal DevDiv feeds
+            # TODO - stop the pipeline here and inspect the .m2/settings file
+            #      - did this mess up our `feed-settings.xml` from before?
+            - task: MavenAuthenticate@0
+              inputs:
+                artifactsFeeds: 'java-engineering-feed'
+              displayName: 'Maven auth for DevDiv'
+
+            # Set up the git client with relatively meaningful user information.
+            - bash: |
+                git config --global user.email "javaplat@microsoft.com"
+                git config --global user.name "Java Platform Team at Microsoft"
+              displayName: 'Set Git user name/email'
+            
+            # Sort out what this _release_ version of the project should be (ie. 1.0.0-SNAPSHOT --> 1.0.0) and
+            # set its value into the env var "VERSION".
+            - bash: |
+                release_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+                release_version=${release_version%-*}
+                echo "##vso[task.setvariable variable=VERSION]${release_version}"
+              displayName: 'Set VERSION env var'
+
+            # Get the GPG secrets from Azure KeyVault and set them into the env vars.
+            # TODO: Do we need to create new keys here, or is re-using SK keys ok?
+            - task: AzureKeyVault@2
+              displayName: Download GPG signing keys
+              inputs:
+                azureSubscription: 'SK Java Test KV'
+                KeyVaultName: 'juniper-keyvault'
+                SecretsFilter: 'javask-gpg-passphrase,javask-gpg-private,javask-gpg-public,javask-gpg-trust'
+                RunAsPreJob: false
+
+            # Do the release:prepare and release:perform tasks.
+            # TODO: take out the duplicate "-Darguments="-Drelease=true"" argument and see what blows up
+            # TODO: separate out release:prepare and release:perform into two steps.
+            - task: Maven@3
+              displayName: 'Release GCToolkit'
+              inputs:
+                mavenPomFile: 'gctoolkit/pom.xml'
+                options: '-Darguments="-Drelease=true" -B release:prepare release:perform -Drelease=true
+              env:
+                MAVEN_GPG_PASSPHRASE: $(javask-gpg-passphrase)
+                GPG_PRIVATEKEY: $(javask-gpg-private)
+                GPG_PUBLICKEY: $(javask-gpg-public)
+                GPG_TRUST: $(javask-gpg-trust)
+                GPG_TTY: $(tty)
+                VERSION: $(VERSION)
+                JAVA_HOME: $(JAVA_HOME)
+
+
+            # - bash: |
+            #     ./mvnw -Darguments="-Drelease=true" -B release:prepare release:perform -Drelease=true \
+            #       -Drepository.url=https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.g
+            #   env:
+            #     MAVEN_USERNAME: ${{ secrets.SONATYPE_NAME }}
+            #     MAVEN_CENTRAL_TOKEN: ${{ secrets.SONATYPE_PASSWORD }}
+            #     MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+
+## WHERE I LEFT OFF:
+# Working in Azure Linux 3.0 WSL instance. Upstream is /home/dekeeler/dev/gctoolkit. Downstream is /home/dekeeler/dev/gctoolkit-ds.
+# I've got the various GPG signing bits saved as text files and env vars (you may need to fetch them again from juniper-keyvault on Azure if you do a clean).
+# I'm working on the "Release" step below, and seeing if I can make use of JReleaser's GPG signing while using ESRP's signing & publishing. (We need the .asc files for ESRP to sign).
+#   NOTE: In Semantic-Kernel, we are doing the GPG parts manually as part of the pipeline, I'm wondering if I can have JReleaser do that for us instead. Will likely need to read JReleaser docs on how to do that).
+
+
+
+
+
+
+jobs:
+  publish:
+
+    steps:
+
+      # Prepare the release and check it into the Git repository
+      # - Remove `-SNAPSHOT` from all POM project:version properties.
+      # - Create a release Tag (this is skipped here for some reason, maybe you have to set it up)
+      # - Build the binaries/project outputs
+      # - Run all tests available in the project
+      # - Sign the artifacts, generate SHA checksums.
+      # - Push the build artifacts (JAR files, code snapshot, etc...) to Maven central
+      # - Update each POM file again, this time increment the version, and add back -SNAPSHOT to the project:version property.
+      #
+      # Note: This project only pushes to the "Staging" area in Maven central, we leave it to project admins to log into
+      #       maven central to promote the build to the current release.
+      # 
+      # Note: The test data comes from _another_ package in Maven called "GCToolkit GCLogs" that is build out of the
+      #       GitHub repo miccrosoft/gctoolkit-testdata. Without that package we cannot run the tests that are included
+      #       with this source code. (Downstream applications can also depend on this test data to run through whatever
+      #       scenarios they make use of GCToolkit for).
+      #
+      # TODO: Stop it from signing, stop it from pushing to Maven central.
+      - name: Release
+        run: |
+          export GPG_TTY=$(tty)
+          ./mvnw -Darguments="-Drelease=true" -B release:prepare release:perform -Drelease=true \
+            -Drepository.url=https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.g
+        env:
+          MAVEN_USERNAME: ${{ secrets.SONATYPE_NAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.SONATYPE_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      # TODO: Inject the ESRP signing process here.
+      # TODO: Inject the ESRP publish task to push our binaries to Maven Central staging.
+      # TODO: Inject a "Manual Process" task to stop the pipeline, request user to ensure the JAR on staging is correct.
+      #       Note: we may just run a test here to ensure the SHA hash matches in staging to what we've built and tested locally.
+      # TODO: Inject the ESRP publish task to push our binaries to Maven Central.
+      
+      # JReleaser is being run again. Not sure why, but it may be checking in the <version+1>-SNAPSHOT back into the POM files.
+      # TODO: Sort out what this last step is doing...
+      - name: Git-release0
+        run: |
+          ./mvnw -B versions:set -DnewVersion=${{steps.version.outputs.version}}
+          ./mvnw -B -pl :gctoolkit -Pjreleaser jreleaser:release
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -42,6 +42,13 @@
                          and always have to look this up every time it is needed. -->
                     <!-- skipTests>true</skipTests -->
                 </configuration>
+            </plugin>            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>
