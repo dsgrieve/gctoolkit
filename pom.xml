@@ -53,6 +53,7 @@
         <maven.checkstyle-plugin.version>3.4.0</maven.checkstyle-plugin.version>
         <maven.clean-plugin.version>3.4.0</maven.clean-plugin.version>
         <maven.compiler-plugin.version>3.13.0</maven.compiler-plugin.version>
+        <maven.release-plugin.version>3.13.0</maven.release-plugin.version>
         <maven.compiler.release>11</maven.compiler.release>
         <maven.dependency-plugin.version>3.7.1</maven.dependency-plugin.version>
         <maven.deploy-plugin.version>3.1.2</maven.deploy-plugin.version>
@@ -236,6 +237,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven.javadoc-plugin.version}</version>
                 </plugin>
@@ -336,32 +342,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven.source-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>jar</phase>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -475,5 +455,42 @@
 
         </plugins>
     </reporting>
+
+    <profiles>
+        <profile>
+            <!--
+            Enabled by release:perform. See the maven-release-plugin configuration in the build section above.
+            -->
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
