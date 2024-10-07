@@ -5,7 +5,7 @@
     <groupId>com.microsoft.gctoolkit</groupId>
     <artifactId>gctoolkit</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.5-SNAPSHOT</version>
+    <version>3.0.5</version>
 
     <name>GCToolKit</name>
     <description>GC log parsing utilities</description>
@@ -28,7 +28,7 @@
         <connection>scm:git:https://github.com/dsgrieve/gctoolkit</connection>
         <developerConnection>scm:git:https://github.com/dsgrieve/gctoolkit</developerConnection>
         <url>${repository.url}</url>
-      <tag>HEAD</tag>
+      <tag>gctoolkit-3.0.5</tag>
   </scm>
 
     <developers>
