@@ -1,0 +1,73 @@
+# Generated with JReleaser 1.14.0 at 2024-09-27T13:55:49.163446-06:00
+project:
+  name: GCToolKit
+  description: Java GC log parsing toolkit
+  longDescription: Java GC log parsing toolkit.
+  authors:
+    - Microsoft
+  inceptionYear: "2020"
+  license: MIT
+  links:
+    homepage: https://github.com/microsoft/gctoolkit
+  java:
+    groupId: com.microsoft.gctoolkit
+    artifactId: gctoolkit
+    version: "8"
+
+release:
+  github:
+    sign: false
+    skipTag: false
+    overwrite: true
+
+    # Changelog customization.
+    #
+    changelog:
+      enabled: true
+      sort: DESC
+      links: true
+      skipMergeCommits: true
+      formatted: ALWAYS
+      preset: 'conventional-commits'
+      format: '- {{commitShortHash}} {{commitTitle}} ({{commitAuthor}})'
+      categoryTitleFormat: '### {{categoryTitle}}'
+      contributorsTitleFormat: '### Contributors'
+      content: |
+        # Changelog
+
+        {{changelogChanges}}
+        {{changelogContributors}}
+
+      contributors:
+        # Enables the contributors block.
+        # Defaults to `true`.
+        #
+        enabled: true
+
+        # The template to use for each contributor.
+        # Defaults to `{{contributorName}}`.
+        #
+        format: '- {{contributorName}} ({{contributorUsernameAsLink}})'
+
+      hide:
+        # Hide uncategorized commits.
+        uncategorized: true
+
+        # Hide matching categories.
+        categories:
+          - 'merge'
+          - 'documentation'
+          - 'build'
+
+        # Hide matching contributor names.
+        contributors:
+          - '[bot]'
+          - 'GitHub'
+
+      # Changes matching this list will be excluded.
+      excludeLabels:
+        - 'docs'
+
+deploy:
+  maven:
+    active: NEVER
