@@ -47,10 +47,10 @@ jobs:
           ./mvnw -B -Prelease release:clean release:prepare \
             -Drepository.url=https://${{ github.actor }}:${{ secrets.RELEASE_TOKEN }}@github.com/${{ github.repository }}.git
         env:
-          GIT_AUTHOR_NAME='Git'
-          GIT_AUTHOR_EMAIL='noreply@github.com'
-          GIT_COMMITTER_NAME='Git'
-          GIT_COMMITTER_EMAIL='noreply@github.com'
+          GIT_AUTHOR_NAME: 'Git'
+          GIT_AUTHOR_EMAIL: 'noreply@github.com'
+          GIT_COMMITTER_NAME: 'Git'
+          GIT_COMMITTER_EMAIL: 'noreply@github.com'
 
       - name: Release to GitHub
         run: |
