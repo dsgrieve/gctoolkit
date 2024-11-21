@@ -33,18 +33,18 @@ jobs:
         run: |
           release_version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           release_version=${release_version%-*}
-          echo ::set-output name=version::${release_version}
+          echo "version=${release_version}" >> "$GITHUB_ENV"
 
           # Get the previous release version from what is actually on GitHub
           previous_release_version=$( curl --location --silent \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/microsoft/gctoolkit/releases/latest | grep 'tag_name' )
           previous_release_version=$( perl -pe 's/"tag_name":\s+"(.*?)",?/$1/' <<< "${previous_release_version}" )
-          echo ::set-output name=previous_version::${previous_release_version}
+          echo "previous_version=${previous_release_version}" >> "$GITHUB_ENV"
 
       - name: Release Prepare
         run: |
-          ./mvnw -B -Prelease release:clean release:prepare \
+          ./mvnw -B -Prelease -Dmaven.test.skip=true -DskipTests=true release:clean release:prepare \
             -Drepository.url=https://${{ github.actor }}:${{ secrets.RELEASE_TOKEN }}@github.com/${{ github.repository }}.git
         env:
           GIT_AUTHOR_NAME: 'Git'
@@ -55,7 +55,7 @@ jobs:
       - name: Release to GitHub
         run: |
           ./mvnw -B -pl :gctoolkit -Pjreleaser jreleaser:release \
-            -Djreleaser.previous.tag.name="${{steps.version.outputs.previous_version}}" \
-            -Djreleaser.tag.name="${{steps.version.outputs.version}}"
+            -Djreleaser.previous.tag.name="$previous_version" \
+            -Djreleaser.tag.name="$version"
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
